@@ -1,26 +1,10 @@
-# Get the Data
-
-# Read in with tidytuesdayR package 
-# Install from CRAN via: 
-install.packages("tidytuesdayR")
-# This loads the readme and all the datasets for the week of interest
-
-# Either ISO-8601 date or year/week works!
-
+# downloading and cleaning the data
+remotes::install_github("thebioengineer/tidytuesdayR")
 tuesdata <- tidytuesdayR::tt_load('2021-03-16')
-tuesdata <- tidytuesdayR::tt_load(2021, week = 12)
-
 games <- tuesdata$games
 
-# Or read in the data manually
-
 games <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2021/2021-03-16/games.csv')
-games
-head(games)
-
-download.file('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2021/2021-03-16/games.csv', "C:/Users/miles/Downloads/myfile.csv")
-
-games <- games |>
+games <- games %>%
   filter(
     !is.na(avg) & avg != 0,
     !is.na(gain) & gain != 0,
@@ -28,4 +12,12 @@ games <- games |>
   )
 
 str(games)
-hist(games$avg, games$year)
+hist(games$avg, games$year) # this line doesn't work, but since it just makes a histogram,
+# its not needed (unless we want to make a histogram)
+
+# plots to make:
+# 1. user selects month/year and metric, it displays the top n games with that metric for that month/yr
+# 2. selectizeInput() in shiny supports typing and searching; user searches for game, chooses metric,
+# then it shows a line chart for that metric over all 12 years.
+# could also do a mix of 1 and 2 where user searches for game, picks month / year, 
+# and there's a scatterplot with x-axis = average players, y-axis = peak players, and bubble size = gain
