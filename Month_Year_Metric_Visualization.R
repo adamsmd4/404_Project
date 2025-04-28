@@ -1,7 +1,10 @@
 ## install.packages("shiny")
 library(shiny)
+library(dplyr)
+library(ggplot2)
 
-games <- read_csv("myfile.csv") %>%
+
+games <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2021/2021-03-16/games.csv') %>%
   filter(!is.na(avg), avg > 0, !is.na(gain), gain > 0, !is.na(peak), peak > 0)
 
 

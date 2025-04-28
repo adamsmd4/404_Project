@@ -26,24 +26,35 @@ head(games$gamename)
 ## Plot 2: user searches for game, chooses metric (avg, peak, or gain),
 # then it shows a line chart for that metric over all 12 years.
 ui <- fluidPage(
-  titlePanel("Fluctuation of a specific metric for a game over the years"),
+  titlePanel("Games Metrics Analysis"),
   
   sidebarLayout(
     sidebarPanel(
-      selectizeInput("gameQuery", "Search for a game:", choices=NULL,
-                     options=list(placeholder="search here...", maxItems=1, openOnFocus=T)),
-      selectInput("metric", "Select a metric:", 
-                  choices = c("avg", "gain", "peak"),
-                  selected = "avg")
+      tabsetPanel(id="graphsList", 
+        tabPanel(
+          "Fluctuation over the years",
+          selectizeInput("gameQuery", "Search for a game:", choices=NULL,
+                         options=list(placeholder="search here...", maxItems=1, openOnFocus=T)),
+          selectInput("metric", "Select a metric:", 
+                      choices = c("avg", "gain", "peak"),
+                      selected = "avg")
+        ),
+        tabPanel("Top 10 games by metric", 
+          selectInput("year", "Select Year:", choices = NULL),
+          selectInput("month", "Select Month:", choices = NULL),
+          selectInput("metric", "Select Metric:", choices = c("avg", "gain", "peak"))
+        )
+      )
     ),
     mainPanel(
-      textOutput("selectedGame"),
       plotOutput("metricPlot")
     )
   )
 )
 
 server <- function(input, output, session) {
+  
+  ## the first two observe calls are for the first plot
   observe({
     updateSelectizeInput(session, "gameQuery", 
                          choices = games$gamename, 
@@ -61,25 +72,50 @@ server <- function(input, output, session) {
         updateSelectizeInput(session, "gameQuery", choices = games$gamename, server = TRUE)
     } 
   })
-  output$selectedGame <- renderText({
-    paste("You selected:", input$gameQuery)
+  
+  ## this observe call is for the second plot
+  observe({
+    updateSelectInput(session, "year", choices = sort(unique(games$year)))
+    updateSelectInput(session, "month", choices = unique(games$month))
   })
+  
+  ## render a different plot based on what tab is selected
   output$metricPlot <- renderPlot({
-    # Ensure the game and metric are selected
-    req(input$gameQuery, input$metric)
-    game <- input$gameQuery
-    metric <- input$metric
-    
-    filteredGameAndMetric <- games %>%
-      filter(gamename == game) %>%
-      select(monthYr, gamename, all_of(metric))
-    
-    # Plot the selected metric over the years
-    ggplot(filteredGameAndMetric, aes(x = monthYr, y = !!sym(metric))) +
-      geom_line(color = "blue") +
-      geom_point() +
-      labs(title = paste("Fluctuation of", metric, "for", game),
-           x = "Month / Year", y = metric)
+    if (input$graphsList == "Fluctuation over the years") {
+      # ensure the game and metric are selected
+      req(input$gameQuery, input$metric)
+      filteredGameAndMetric <- games %>%
+        filter(gamename == input$gameQuery) %>%
+        select(monthYr, gamename, all_of(input$metric))
+      
+      ggplot(filteredGameAndMetric, aes(x = monthYr, y = !!sym(input$metric))) +
+        geom_line(color = "blue") +
+        geom_point() +
+        labs(title = paste("Fluctuation of", input$metric, "for", input$gameQuery),
+             x = "Month / Year", y = input$metric)
+      
+    } else if (input$graphsList == "Top 10 games by metric") {
+      req(input$year, input$month, input$metric)
+      top10Games <- games %>%
+        filter(year == input$year, month == input$month) %>%
+        arrange(desc(!!sym(input$metric))) %>%
+        slice_head(n = 10)
+      if (nrow(top10Games) == 0) {
+        return(ggplot() + 
+                 labs(title = "No data available for the selected year/month/metric"))
+      }
+      ggplot(top10Games, aes(x = reorder(gamename, !!sym(input$metric)), 
+                            y = !!sym(input$metric), 
+                            group = 1)) +
+        geom_line(aes(color = gamename)) +
+        geom_point() +
+        labs(
+          x = "Game",
+          y = input$metric,
+          title = paste("Top 10 Games in", input$month, input$year, "by", input$metric)
+        ) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    }
   })
 }
 shinyApp(ui, server)
