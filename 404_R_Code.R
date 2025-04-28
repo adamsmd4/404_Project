@@ -13,17 +13,8 @@ games <- games %>%
     !is.na(peak) & peak != 0
   )
 
-str(games)
-head(games$gamename)
-
-# plots to make:
-# 1. user selects month/year and metric, it displays the top n games with that metric for that month/yr
-# 2. selectizeInput() in shiny supports typing and searching; user searches for game, chooses metric,
-# then it shows a line chart for that metric over all 12 years.
-# could also do a mix of 1 and 2 where user searches for game, picks month / year, 
-# and there's a scatterplot with x-axis = average players, y-axis = peak players, and bubble size = gain
-
-## Plot 2: user searches for game, chooses metric (avg, peak, or gain),
+# plot 1. user selects month/year and metric, it displays the top n games with that metric for that month/yr
+# plot 2: user searches for game, chooses metric (avg, peak, or gain),
 # then it shows a line chart for that metric over all 12 years.
 ui <- fluidPage(
   titlePanel("Games Metrics Analysis"),
@@ -54,7 +45,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  ## the first two observe calls are for the first plot
+  # the first two observe calls are for the first plot
   observe({
     updateSelectizeInput(session, "gameQuery", 
                          choices = games$gamename, 
@@ -73,13 +64,13 @@ server <- function(input, output, session) {
     } 
   })
   
-  ## this observe call is for the second plot
+  # this observe call is for the second plot
   observe({
     updateSelectInput(session, "year", choices = sort(unique(games$year)))
     updateSelectInput(session, "month", choices = unique(games$month))
   })
   
-  ## this observe call is to reset the selected metric - both tabs can't track it at once
+  # this observe call is to reset the selected metric - both tabs can't track it at once
   observe({
     if(input$graphsList == "Fluctuation over the years") {
       updateSelectInput(session, "metric", selected = "avg")
@@ -89,10 +80,9 @@ server <- function(input, output, session) {
     }
   })
   
-  ## render a different plot based on what tab is selected
+  # render a different plot based on what tab is selected
   output$metricPlot <- renderPlot({
     if (input$graphsList == "Fluctuation over the years") {
-      # ensure the game and metric are selected
       req(input$gameQuery, input$metric)
       filteredGameAndMetric <- games %>%
         filter(gamename == input$gameQuery) %>%
