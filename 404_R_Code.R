@@ -79,6 +79,16 @@ server <- function(input, output, session) {
     updateSelectInput(session, "month", choices = unique(games$month))
   })
   
+  ## this observe call is to reset the selected metric - both tabs can't track it at once
+  observe({
+    if(input$graphsList == "Fluctuation over the years") {
+      updateSelectInput(session, "metric", selected = "avg")
+    }
+    if(input$graphsList == "Top 10 games by metric") {
+      updateSelectInput(session, "metric", selected = "avg")
+    }
+  })
+  
   ## render a different plot based on what tab is selected
   output$metricPlot <- renderPlot({
     if (input$graphsList == "Fluctuation over the years") {
