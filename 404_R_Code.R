@@ -87,10 +87,11 @@ server <- function(input, output, session) {
         select(monthYr, gamename, all_of(input$metric))
       
       ggplot(filteredGameAndMetric, aes(x = monthYr, y = !!sym(input$metric))) +
-        geom_line(color = "blue") +
-        geom_point() +
+        geom_line(color = "#C8102E") +
         labs(title = paste("Fluctuation of", input$metric, "for", input$gameQuery),
-             x = "Month / Year", y = input$metric)
+             x = "Month / Year", y = input$metric) +
+        scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+        scale_y_continuous(labels = scales::label_comma())
       
     } else if (input$graphsList == "Top 10 games by metric") {
       req(input$year, input$month, input$metric)
