@@ -6,7 +6,8 @@ library(shiny)
 games <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2021/2021-03-16/games.csv')
 games <- games %>%
   mutate(monthNum = match(month, month.name),
-         monthYr = as.Date(paste(year, monthNum, "01", sep="-"), format="%Y-%m-%d")) %>%
+         monthYr = as.Date(paste(year, monthNum, "01", sep="-"), format="%Y-%m-%d"),
+         gamename = gsub("<U\\+\\w{4}>", "", gamename)) %>%
   filter(
     !is.na(avg) & avg != 0,
     !is.na(gain) & gain != 0,
@@ -48,7 +49,7 @@ server <- function(input, output, session) {
   # the first two observe calls are for the first plot
   observe({
     updateSelectizeInput(session, "gameQuery", 
-                         choices = games$gamename, 
+                         choices = sort(unique(games$gamename)), 
                          server = TRUE)
   })
   observe({
@@ -58,9 +59,9 @@ server <- function(input, output, session) {
         filter(grepl(query, gamename, ignore.case=T)) %>%
         pull(gamename) %>% unique()
       if (length(filtered) > 0)
-        updateSelectizeInput(session, "gameQuery", choices = filtered, server = TRUE)
+        updateSelectizeInput(session, "gameQuery", choices = sort(filtered), server = TRUE)
       else
-        updateSelectizeInput(session, "gameQuery", choices = games$gamename, server = TRUE)
+        updateSelectizeInput(session, "gameQuery", choices = sort(unique(games$gamename)), server = TRUE)
     } 
   })
   
