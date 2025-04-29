@@ -67,8 +67,9 @@ server <- function(input, output, session) {
   
   # this observe call is for the second plot
   observe({
-    updateSelectInput(session, "year", choices = sort(unique(games$year)))
-    updateSelectInput(session, "month", choices = unique(games$month))
+    updateSelectInput(session, "year",  choices = sort(unique(games$year)))
+    months_present <- intersect(month.name, unique(games$month))
+    updateSelectInput(session, "month", choices = months_present)
   })
   
   # this observe call is to reset the selected metric - both tabs can't track it at once
