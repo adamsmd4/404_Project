@@ -72,12 +72,10 @@ server <- function(input, output, session) {
   
   # this observe call is to reset the selected metric - both tabs can't track it at once
   observe({
-    if(input$graphsList == "Fluctuation over the years") {
+    if(input$graphsList == "Fluctuation over the years")
       updateSelectInput(session, "metric", selected = "avg")
-    }
-    if(input$graphsList == "Top 10 games by metric") {
+    if(input$graphsList == "Top 10 games by metric")
       updateSelectInput(session, "metric", selected = "avg")
-    }
   })
   
   # render a different plot based on what tab is selected
@@ -100,10 +98,9 @@ server <- function(input, output, session) {
         filter(year == input$year, month == input$month) %>%
         arrange(desc(!!sym(input$metric))) %>%
         slice_head(n = 10)
-      if (nrow(top10Games) == 0) {
+      if (nrow(top10Games) == 0)
         return(ggplot() + 
                  labs(title = "No data available for the selected year/month/metric"))
-      }
       ggplot(top10Games, aes(x = reorder(gamename, !!sym(input$metric)), 
                             y = !!sym(input$metric), 
                             group = 1)) +
