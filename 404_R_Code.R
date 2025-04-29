@@ -89,31 +89,36 @@ server <- function(input, output, session) {
       ggplot(filteredGameAndMetric, aes(x = monthYr, y = !!sym(input$metric))) +
         geom_line(color = "#C8102E") +
         labs(title = paste("Fluctuation of", input$metric, "for", input$gameQuery),
-             x = "Month / Year", y = input$metric) +
+             x = "Year", y = input$metric) +
         scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
         scale_y_continuous(labels = scales::label_comma())
       
     } else if (input$graphsList == "Top 10 games by metric") {
       req(input$year, input$month, input$metric)
-      top10Games <- games %>%
+      top10 <- games %>%
         filter(year == input$year, month == input$month) %>%
         arrange(desc(!!sym(input$metric))) %>%
         slice_head(n = 10)
-      if (nrow(top10Games) == 0)
-        return(ggplot() + 
-                 labs(title = "No data available for the selected year/month/metric"))
-      ggplot(top10Games, aes(x = reorder(gamename, !!sym(input$metric)), 
-                            y = !!sym(input$metric), 
-                            group = 1)) +
-        geom_line(aes(color = gamename)) +
-        geom_point() +
-        labs(
-          x = "Game",
-          y = input$metric,
-          title = paste("Top 10 Games in", input$month, input$year, "by", input$metric)
-        ) +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      
+      if (nrow(top10) == 0) {
+        ggplot() +
+          labs(title = "No data available for the selected year/month/metric")
+      } else {
+        ggplot(top10,
+               aes(x = reorder(gamename, !!sym(input$metric)),
+                   y = !!sym(input$metric),
+                   fill = gamename)) +
+          geom_col() +
+          labs(
+            x = "Game",
+            y = input$metric,
+            title = paste("Top 10 Games in", input$month, input$year, "by", input$metric)
+          ) +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+          scale_y_continuous(labels = scales::label_comma())
+      }
     }
   })
 }
+
 shinyApp(ui, server)
